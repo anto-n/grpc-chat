@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+option go_package = "protos;grpc_chat";
+
+package grpc_chat;
+
+// Interface exported by the server.
+service GrpcChat {
+  // Create room for conversation
+  rpc CreateRoom(UserRoomByName) returns (Room) {}
+
+  // Join existing room
+  rpc JoinRoom(UserRoomById) returns (Room) {}
+
+  // Leave room
+  rpc LeaveRoom(UserRoomById) returns (Room) {}
+
+  // Get existing rooms
+  rpc GetRooms(Empty) returns (Rooms) {}
+
+  // Get id of last message in a room
+  rpc GetLastMessageId(RoomId) returns (MessageId) {}
+
+  // Send message
+  rpc SendMessage(ChatMessage) returns (Empty) {}
+
+  // Poll messages
+  rpc GetMessages(RoomMessageId) returns (stream ChatMessage) {}
+}
+
+message Empty {}
+
+// MessageId identifies message within specific room
+message RoomMessageId {
+  RoomId roomId = 1;
+  MessageId messageId = 2;
+}
+
+message MessageId {
+  uint32 id = 1;
+}
+
+message RoomId {
+  uint32 id = 1;
+}
+
+// Rooms represents existing rooms
+message Rooms {
+  repeated Room rooms = 1;
+}
+
+// Room represents single chat room
+message Room {
+  string name = 1;
+  RoomId id = 2;
+
+  map<uint32, User> users = 3;
+  map<uint32, ChatMessages> paged_messages = 4;
+  repeated uint32 pages_indexes = 5;
+  MessageId last_message_id = 6;
+}
+
+message UserRoomByName {
+  // name - name of a room
+  string name = 1;
+
+  // user - User associated with a room
+  User user = 2;
+}
+
+message UserRoomById {
+  // id - a room id
+  uint32 id = 1;
+
+  // user - User associated with a room
+  User user = 2;
+}
+
+// User represents specific user
+message User {
+  string name = 1;
+  uint32 id = 2;
+}
+
+// ChatMessages represent collection of chat messages
+message ChatMessages {
+  repeated ChatMessage messages = 1;
+}
+
+// ChatMessage represents a message
+message ChatMessage {
+  User user = 1;
+  RoomMessageId id = 2;
+  string text = 3;
+}
